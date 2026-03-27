@@ -1,0 +1,73 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Traffic API Requests (cache hit vs miss)",
+      "targets": [
+        {
+          "expr": "sum by (cache_hit) (rate(traffic_api_requests_total[5m]))",
+          "legendFormat": "cache_hit={{cache_hit}}"
+        }
+      ],
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Google Routes Upstream Calls",
+      "targets": [
+        { "expr": "rate(google_routes_api_calls_total[5m])", "legendFormat": "upstream_calls/s" }
+      ],
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 0 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Traffic API Latency (p50/p95)",
+      "targets": [
+        { "expr": "histogram_quantile(0.5, sum(rate(traffic_api_latency_seconds_bucket[5m])) by (le))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, sum(rate(traffic_api_latency_seconds_bucket[5m])) by (le))", "legendFormat": "p95" }
+      ],
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 }
+    },
+    {
+      "type": "gauge",
+      "title": "Quota Usage Ratio",
+      "targets": [
+        { "expr": "quota_usage_ratio", "legendFormat": "quota" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.8 },
+              { "color": "red", "value": 0.95 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 }
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["traffic", "routes", "prometheus"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Traffic Service Dashboard",
+  "uid": "traffic-service",
+  "version": 1
+}
+
