@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import Any, Literal
 
 import httpx
-from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.core.exceptions import GoogleRoutesAPIError
 from app.utils.logger import get_logger, log_extra
@@ -60,7 +60,11 @@ class GoogleRoutesClient:
         # Best-effort reachability check: just open TCP/TLS to host by doing a HEAD on base.
         await self._client.head(self.BASE_URL, headers={"X-Goog-Api-Key": self._api_key})
 
-    @retry(wait=wait_exponential(multiplier=0.5, min=0.5, max=5), stop=stop_after_attempt(3))
+    @retry(
+        wait=wait_exponential(multiplier=0.5, min=0.5, max=5),
+        stop=stop_after_attempt(3),
+        reraise=True,
+    )
     async def compute_route(self, origin_lat: float, origin_lng: float, dest_lat: float, dest_lng: float) -> GoogleRouteResult:
         url = f"{self.BASE_URL}{self.PATH}"
         body = {
