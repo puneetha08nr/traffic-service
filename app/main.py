@@ -6,21 +6,20 @@ from typing import AsyncIterator
 
 from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
-from prometheus_client import Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.api.routes.health import router as health_router
+from app.api.routes.scheduler import router as scheduler_router
 from app.api.routes.traffic import router as traffic_router
 from app.config import get_settings
 from app.core.exceptions import GoogleRoutesAPIError, InvalidCoordinatesError, QuotaExceededError
+from app.core.metrics import quota_usage_ratio
 from app.dependencies import close_resources, init_resources
+from app.scheduler import start_scheduler, stop_scheduler
 from app.utils.logger import configure_logging, get_logger, log_extra
 
 
 logger = get_logger(__name__)
-quota_usage_ratio = Gauge(
-    "quota_usage_ratio", "used/cap ratio (0..1) updated per call"
-)
 
 
 @asynccontextmanager
@@ -28,9 +27,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     configure_logging(settings.log_level)
     await init_resources(app)
+    if settings.scheduler_enabled:
+        start_scheduler(app, settings.scheduler_interval_minutes)
     try:
         yield
     finally:
+        if settings.scheduler_enabled:
+            stop_scheduler()
         await close_resources(app)
 
 
@@ -80,6 +83,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router, prefix="/api/v1", tags=["health"])
     app.include_router(traffic_router, prefix="/api/v1", tags=["traffic"])
+    app.include_router(scheduler_router, prefix="/api/v1", tags=["scheduler"])
 
     return app
 

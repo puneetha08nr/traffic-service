@@ -93,11 +93,23 @@ class GoogleRoutesClient:
         }
 
         start = datetime.now(timezone.utc)
+        
+        # --- ADD THE PRINT HERE, right before the network call ---
+        print(f"\n---> DEBUG: Using API Key starting with: '{self._api_key[:10]}...' <--- \n", flush=True)
+
+        # Sanity check: verify API key is present (prefix only).
+        logger.info(
+            "google_api_key_prefix",
+            extra=log_extra(api_key_prefix=(self._api_key or "")[:10]),
+        )
+        
         try:
             resp = await self._client.post(url, json=body, headers=headers)
         except httpx.HTTPError as e:
             raise GoogleRoutesAPIError(f"HTTP error calling Google Routes API: {e!s}") from e
-
+            
+        # (Remove the old print from down here)
+        
         if resp.status_code >= 400:
             raise GoogleRoutesAPIError(
                 f"Google Routes API returned {resp.status_code}: {resp.text}"

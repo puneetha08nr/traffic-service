@@ -24,6 +24,9 @@ class Settings(BaseSettings):
         default="development", alias="ENVIRONMENT"
     )
 
+    scheduler_interval_minutes: int = Field(default=15, alias="SCHEDULER_INTERVAL_MINUTES", ge=1)
+    scheduler_enabled: bool = Field(default=True, alias="SCHEDULER_ENABLED")
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

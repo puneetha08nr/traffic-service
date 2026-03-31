@@ -58,6 +58,8 @@ Copy the example env file and fill in values:
 cp .env.example .env
 ```
 
+For Docker Compose runs, use `.env.docker` (container networking uses service names like `redis` and `db`).
+
 Environment variables (see `.env.example` for defaults):
 
 - **GOOGLE_ROUTES_API_KEY**: Google Routes API key (required).
